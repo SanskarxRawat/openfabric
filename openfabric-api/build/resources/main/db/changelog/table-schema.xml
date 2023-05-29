@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <!-- ############################################################ -->
+    <!--   DBMS SPECIFIC SETUP   -->
+    <!-- ############################################################ -->
+    <property name="uuid_type" value="CHAR(36)" dbms="postgresql"/>
+    <property name="uuid_type" value="uniqueidentifier" dbms="mssql"/>
+    <property name="uuid_type" value="RAW(16)" dbms="oracle"/>
+    <property name="uuid_function" value="uuid_generate_v4()" dbms="postgresql"/>
+    <property name="uuid_function" value="NEWID()" dbms="mssql"/>
+    <property name="uuid_function" value="sys_guid()" dbms="oracle"/>
+
+    <changeSet id="EXTENSION" author="andrei">
+        <sql>
+            CREATE
+            EXTENSION IF NOT EXISTS "uuid-ossp";
+        </sql>
+    </changeSet>
+    <changeSet id="SEQUENCE" author="andrei">
+        <sql>
+            CREATE SEQUENCE IF NOT EXISTS hibernate_sequence START 1;
+        </sql>
+    </changeSet>
+
+    <!-- ############################################################ -->
+    <!--  Worker  -->
+    <!-- ############################################################ -->
+    <changeSet id="WO_01" author="andrei">
+        <createTable tableName="worker" remarks="Worker table">
+            <column name="id" type="${uuid_type}" defaultValueComputed="${uuid_function}">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(255)"/>
+            <column name="image_name" type="VARCHAR(255)"/>
+            <column name="port" type="INTEGER"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="created_at" type="DATETIME"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="deleted_at" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ############################################################ -->
+    <!--  Worker Statistics  -->
+    <!-- ############################################################ -->
+    <changeSet id="WS_02" author="sanskar">
+        <createTable tableName="worker_statistics" remarks="Worker Statistics table">
+            <column name="id" type="${uuid_type}" defaultValueComputed="${uuid_function}">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="worker_id" type="${uuid_type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_tasks" type="INTEGER"/>
+            <column name="successful_tasks" type="INTEGER"/>
+            <column name="failed_tasks" type="INTEGER"/>
+            <column name="pending_tasks" type="INTEGER"/>
+            <column name="in_progress_tasks" type="INTEGER"/>
+            <column name="completed_tasks" type="INTEGER"/>
+            <column name="error_tasks" type="INTEGER"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="worker_statistics" baseColumnNames="worker_id"
+                                 referencedTableName="worker" referencedColumnNames="id"
+                                 constraintName="FK_worker_statistics_worker"/>
+    </changeSet>
+
+
+
+</databaseChangeLog>
